@@ -19,11 +19,11 @@ test_data = np.array(test_data)
 rezultati = np.array(rezultati)   #pricakovani rezultati...del train_data
 
 
-def vizualizacija(stevilka):
+def vizualizacija(rez,data,stevilka):
     fig, axs = plt.subplots(3, 3)
-    axs[0,0].hist(rezultati, density=True, bins=10, edgecolor='black', linewidth=1.2)
-    selection = rezultati == stevilka
-    selected_data = train_data[selection]
+    axs[0,0].hist(rez, density=True, bins=10, edgecolor='black', linewidth=1.2)
+    selection = rez == stevilka
+    selected_data = data[selection]
     axs[0,1].imshow(selected_data[0])
     axs[0,2].imshow(selected_data[1])
     axs[1,0].imshow(selected_data[2])
@@ -37,4 +37,4 @@ def vizualizacija(stevilka):
     plt.show()
 
 #Vpiši vizualizacija katere številke te zanima, dobis prvih 8
-vizualizacija(1)
+vizualizacija(rezultati,train_data,1)
