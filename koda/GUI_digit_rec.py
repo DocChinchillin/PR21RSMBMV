@@ -1,15 +1,33 @@
-import sys
+import io, sys
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
-from PyQt5.QtCore import Qt, QFile,QDataStream
+from PyQt5.QtCore import Qt, QFile, QDataStream, QBuffer
 from PyQt5.QtGui import QPen
 from PyQt5.QtWidgets import (QWidget, QPushButton,
                              QHBoxLayout, QVBoxLayout, QApplication)
-
+from PIL import Image
+import PIL.ImageOps
+import numpy as np
 
 class MainWindow(QtWidgets.QMainWindow):
     def saveToFile(self):
+        buffer = QBuffer()
+        buffer.open(QBuffer.ReadWrite)
+        qimg = self.label.pixmap().toImage() # QImage
+        qimg.save(buffer, "PNG")
+        pimg = Image.open(io.BytesIO(buffer.data())) # PIL Image
+        pimg = pimg.resize((28, 28))
+        pimg = pimg.convert("L") # v črno-belo
+        pimg = PIL.ImageOps.invert(pimg) # negativ
+        npimg = np.array(pimg) # numpy array
+        npimg = np.insert(npimg, 0, 0) # vrednost 0 pomeni neznano število
+        column_heads = ["pixel" + str(i) for i in range(784)]
+        column_heads.insert(0, "label")
 
-        print(self.label.pixmap().save("new_digit.png","png"))
+        np.savetxt("new_digit.csv", [column_heads], delimiter=",", fmt="%s")
+        f = open("new_digit.csv", "ab")
+        np.savetxt(f, [npimg], delimiter=",", fmt="%d")
+        f.close()
+        #print(pimg.save("new_digit.png","png"))
 
     def __init__(self):
         super().__init__()
