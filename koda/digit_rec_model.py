@@ -1,7 +1,8 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import tensorflow
+import tensorflow as tf
+import sys
 import keras
 
 from keras.utils.np_utils import to_categorical
@@ -11,9 +12,11 @@ from keras.optimizers import Adam
 from keras.preprocessing import image
 from keras.preprocessing.image import ImageDataGenerator
 from sklearn.model_selection import train_test_split
-
+from koda import GUI_digit_rec
 
 #loading test and train data
+
+
 train = pd.read_csv('../podatki/train.csv')
 test = pd.read_csv('../podatki/test.csv')
 
@@ -86,13 +89,76 @@ def cnn_model():
     return model
 
 
+# make cnn model and train it
+'''
 model = cnn_model()
 model.optimizer.lr = 0.01
-
 model.fit(X_train, Y_train, epochs=30, validation_data=(X_val, Y_val))
+'''
 
+# predict for kaggle
+
+'''
 pred = model.predict(X_test)
 pred = np.argmax(pred, axis=1)
-result = pd.DataFrame({'Id':list(range(1, len(pred)+1)), 'Label':pred})
-result.to_csv('../podatki/res.csv', index=False)
+'''
 
+# result for kaggle
+'''
+result = pd.DataFrame({'Id':list(range(1, len(pred)+1)), 'Label':pred}) 
+result.to_csv('../podatki/res.csv', index=False)
+'''
+
+
+# save trained model
+'''
+tf.keras.models.save_model(model, '../podatki/model.h5py')
+'''
+import sys
+from PyQt5 import QtCore, QtGui, QtWidgets, uic
+from PyQt5.QtCore import Qt, QFile, QDataStream, QBuffer
+from PyQt5.QtGui import QPen
+from PyQt5.QtWidgets import (QWidget, QPushButton,
+                             QHBoxLayout, QVBoxLayout, QApplication)
+from PIL import Image
+import PIL.ImageOps
+import numpy as np
+
+# load model
+model = tf.keras.models.load_model('../podatki/model.h5py')
+
+
+def predict_GUI_number(UI_model, image): #image is nump array
+    image = image.reshape(-1, 28, 28, 1)
+    pred = UI_model.predict([image])[0]
+    return np.argmax(pred), max(pred)
+
+
+# method to get number from gui
+def get_image():
+    img = window.label.grab().toImage().save('../podatki/num.jpg')
+    img = Image.open('../podatki/num.jpg')
+    img = img.resize((28, 28))
+    img = img.convert('L')
+    img_array = np.array(img)
+    pred, acc = predict_GUI_number(model, img_array)
+
+    window.pred_number.setText(f'Predicted number: {pred}, Accuracy {acc}')
+
+
+
+
+
+
+# gui
+app = QtWidgets.QApplication(sys.argv)
+window = GUI_digit_rec.MainWindow()
+window.show()
+
+
+
+# number pred and acc
+window.recoqnizebutton.clicked.connect(get_image)
+
+
+app.exec()
